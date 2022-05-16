@@ -1,0 +1,4 @@
+.env*
+.idea/
+.openzeppelin/unknown-1337.json
+node_modules/
