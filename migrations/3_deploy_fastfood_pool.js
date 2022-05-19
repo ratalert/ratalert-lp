@@ -4,7 +4,7 @@ const TimelockController = artifacts.require('TimelockController');
 const FastFood = artifacts.require('FastFood');
 const FastFoodLP = artifacts.require('FastFoodLP');
 const StakingPool = artifacts.require('StakingPool');
-const StakingRewardPool = artifacts.require('StakingRewardPool');
+const StakingRewardPool = artifacts.require('FastFoodPool');
 
 module.exports = async (deployer, network, accounts) => {
   const isDev = network === 'development';

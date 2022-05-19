@@ -6,7 +6,7 @@ require('@openzeppelin/test-helpers');
 
 const FoodTokenLP = artifacts.require('FastFoodLP');
 const FoodToken = artifacts.require('FastFood');
-const StakingRewardPool = artifacts.require('StakingRewardPool');
+const StakingRewardPool = artifacts.require('FastFoodPool');
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
