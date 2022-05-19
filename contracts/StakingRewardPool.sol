@@ -94,7 +94,7 @@ contract StakingRewardPool is StakingPool {
     return rewardToken.transfer(payable(dao), amount); // Transfer to DAO wallet
   }
 
-  function startStake(uint periodId, uint amount) public override {
+  function startStake(uint periodId, uint amount) public override whenNotPaused {
     update(periodId);
     super.startStake(periodId, amount);
 
@@ -103,7 +103,7 @@ contract StakingRewardPool is StakingPool {
     period.totalStaked = period.totalStaked.add(amount);
   }
 
-  function endStake(uint periodId, uint amount) public override {
+  function endStake(uint periodId, uint amount) public override whenNotPaused {
     update(periodId);
     super.endStake(periodId, amount);
 
@@ -114,12 +114,12 @@ contract StakingRewardPool is StakingPool {
     claim(periodId);
   }
 
-  function depositAndStartStake(uint periodId, uint256 amount) public override {
+  function depositAndStartStake(uint periodId, uint256 amount) public override whenNotPaused {
     deposit(amount);
     startStake(periodId, amount);
   }
 
-  function endStakeAndWithdraw(uint periodId, uint amount) public override {
+  function endStakeAndWithdraw(uint periodId, uint amount) public override whenNotPaused {
     endStake(periodId, amount);
     withdraw(amount);
   }
@@ -168,7 +168,7 @@ contract StakingRewardPool is StakingPool {
     return pending.add(reward);
   }
 
-  function claimReward(uint periodId) public {
+  function claimReward(uint periodId) public whenNotPaused {
     update(periodId);
     claim(periodId);
   }

@@ -3,10 +3,11 @@ pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "./Wallet.sol";
 import "./DOWable.sol";
 
-contract StakingPool is Wallet, DOWable {
+contract StakingPool is Wallet, Pausable, DOWable {
   using SafeMath for uint256;
 
   event Staked(address indexed user, uint amount);
@@ -18,7 +19,7 @@ contract StakingPool is Wallet, DOWable {
 
   constructor(address _rewardToken, address _lpToken) Wallet(_lpToken) {}
 
-  function startStake(uint, uint amount) virtual public {
+  function startStake(uint, uint amount) virtual public whenNotPaused {
     require(amount > 0, "Invalid amount");
     require(balances[msg.sender] >= amount, "Insufficient token balance");
 
@@ -30,7 +31,7 @@ contract StakingPool is Wallet, DOWable {
   }
 
 
-  function endStake(uint, uint amount) virtual public {
+  function endStake(uint, uint amount) virtual public whenNotPaused {
     require(stakes[msg.sender] >= amount, "Insufficient token balance");
 
     balances[msg.sender] += amount;
@@ -44,14 +45,22 @@ contract StakingPool is Wallet, DOWable {
     return stakes[msg.sender];
   }
 
-  function depositAndStartStake(uint periodId, uint256 amount) virtual public {
+  function depositAndStartStake(uint periodId, uint256 amount) virtual public whenNotPaused {
     deposit(amount);
     startStake(periodId, amount);
   }
 
-  function endStakeAndWithdraw(uint periodId, uint amount) virtual public {
+  function endStakeAndWithdraw(uint periodId, uint amount) virtual public whenNotPaused {
     endStake(periodId, amount);
     withdraw(amount);
+  }
+
+  function pause() external onlyDao {
+    _pause();
+  }
+
+  function unpause() external onlyDao {
+    _unpause();
   }
 
   /**

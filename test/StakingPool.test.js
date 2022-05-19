@@ -82,4 +82,26 @@ contract('StakingPool', (accounts) => {
       await expect(this.pool.getStakedBalance()).to.eventually.be.a.bignumber.eq('0');
     });
   });
+
+  describe('(un)pause()', () => {
+    it('denies anonymous to pause', async () => {
+      await expect(this.pool.pause()).to.eventually.be.rejectedWith('Only DAO can execute');
+    });
+    it('allows DAO to pause', async () => {
+      const res = await this.pool.pause({ from: dao });
+      expect(res.receipt.status).to.be.true;
+      await expect(this.pool.paused()).to.eventually.equal(true);
+    });
+    it('prevents depositAndStartStake when paused', async () => {
+      await expect(this.pool.depositAndStartStake(0, 1)).to.eventually.be.rejectedWith('Pausable: paused');
+    });
+    it('denies anonymous to unpause', async () => {
+      await expect(this.pool.unpause()).to.eventually.be.rejectedWith('Only DAO can execute');
+    });
+    it('allows DAO to unpause', async () => {
+      const res = await this.pool.unpause({ from: dao });
+      expect(res.receipt.status).to.be.true;
+      await expect(this.pool.paused()).to.eventually.equal(false);
+    });
+  });
 });
