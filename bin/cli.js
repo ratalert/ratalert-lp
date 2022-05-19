@@ -16,8 +16,8 @@ const commands = {
         const status = await (await this.getInst(contract)).paused();
         console.log(`${contract} is ${status ? 'paused' : 'not paused'}`);
     },
-    newRewardPeriod: async(amount, start, end) => {
-        const pool = await artifacts.require('StakingRewardPool').deployed();
+    newRewardPeriod: async(contract, amount, start, end) => {
+        const pool = await artifacts.require(contract).deployed();
         const foodToken = await artifacts.require('FastFood').deployed();
         const startDate = new Date(Date.parse(start));
         const endDate = new Date(Date.parse(end));
@@ -30,8 +30,8 @@ const commands = {
         const res = await this.executeOrEncode(pool, 'newRewardPeriod', [toWei(amount), startEpoch, endEpoch]);
         if (res) console.log(res);
     },
-    withdrawReward: async(amount) => {
-        const instance = await artifacts.require('StakingRewardPool').deployed();
+    withdrawReward: async(contract, amount) => {
+        const instance = await artifacts.require(contract).deployed();
         const res = this.executeOrEncode(instance, 'withdrawReward', [toWei(amount)]);
         if (res) console.log(res);
     },
