@@ -504,6 +504,12 @@ contract('StakingRewardPool', (accounts) => {
     });
 
     describe('withdrawReward()', () => {
+        before(async () => {
+            const latestBlock = await web3.eth.getBlock('latest')
+            const start = latestBlock.timestamp
+            const end = start + 1000;
+            await this.pool.newRewardPeriod(10, start, end, { from: dao });
+        });
         it('denies anonymous to withdraw', async () => {
             await expect(this.pool.withdrawReward(10)).to.eventually.be.rejectedWith('Only DAO can execute');
         });

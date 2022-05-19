@@ -8,9 +8,13 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 contract('Wallet', (accounts) => {
+    const owner = accounts[0];
+    const dao = accounts[9];
+
     before(async () => {
         this.foodTokenLP = await FoodTokenLP.deployed();
         this.pool = await StakingPool.deployed();
+        await this.foodTokenLP.transfer(owner, 200, { from: dao });
         await this.foodTokenLP.approve(this.pool.address, 100);
     });
 
