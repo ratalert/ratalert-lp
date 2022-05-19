@@ -18,7 +18,7 @@ contract StakingPool is Wallet, DOWable {
 
   constructor(address _rewardToken, address _lpToken) Wallet(_lpToken) {}
 
-  function startStake(uint amount) virtual public {
+  function startStake(uint, uint amount) virtual public {
     require(amount > 0, "Invalid amount");
     require(balances[msg.sender] >= amount, "Insufficient token balance");
 
@@ -30,7 +30,7 @@ contract StakingPool is Wallet, DOWable {
   }
 
 
-  function endStake(uint amount) virtual public {
+  function endStake(uint, uint amount) virtual public {
     require(stakes[msg.sender] >= amount, "Insufficient token balance");
 
     balances[msg.sender] += amount;
@@ -44,20 +44,20 @@ contract StakingPool is Wallet, DOWable {
     return stakes[msg.sender];
   }
 
-  function depositAndStartStake(uint256 amount) public {
+  function depositAndStartStake(uint periodId, uint256 amount) virtual public {
     deposit(amount);
-    startStake(amount);
+    startStake(periodId, amount);
   }
 
-  function endStakeAndWithdraw(uint amount) public {
-    endStake(amount);
+  function endStakeAndWithdraw(uint periodId, uint amount) virtual public {
+    endStake(periodId, amount);
     withdraw(amount);
   }
 
   /**
    * Reset user balances and stakes
    */
-  function reset() public virtual onlyOwner {
+  function reset() public virtual onlyDao {
     for (uint i = 0; i < usersArray.length; i++) {
       balances[usersArray[i]] = 0;
       stakes[usersArray[i]] = 0;
