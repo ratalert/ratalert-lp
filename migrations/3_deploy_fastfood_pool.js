@@ -19,10 +19,12 @@ module.exports = async (deployer, network, accounts) => {
   const fastFood = isDev ? await FastFood.deployed() : { address: config.foodTokens.fastFood };
   const fastFoodLP = isDev ? await FastFoodLP.deployed() : { address: config.lpTokens.fastFood };
 
-  await deployer.deploy(StakingPool, fastFood.address, fastFoodLP.address);
-  const stakingPool = await StakingPool.deployed();
-  await stakingPool.setDao(config.dao.address);
-  await stakingPool.transferOwnership(timelockController.address);
+  if (network === 'development') {
+    await deployer.deploy(StakingPool, fastFood.address, fastFoodLP.address);
+    const stakingPool = await StakingPool.deployed();
+    await stakingPool.setDao(config.dao.address);
+    await stakingPool.transferOwnership(timelockController.address);
+  }
 
   await deployer.deploy(StakingRewardPool, fastFood.address, fastFoodLP.address);
   const stakingRewardPool = await StakingRewardPool.deployed();
