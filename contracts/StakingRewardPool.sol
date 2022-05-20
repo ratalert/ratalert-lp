@@ -21,14 +21,14 @@ contract StakingRewardPool is StakingPool {
   event RewardPaid(address indexed user, uint256 reward);
 
   struct RewardPeriod {
-    uint id;
-    uint reward;
-    uint from;
-    uint to;
-    uint lastUpdated; // when the totalStakedWeight was last updated (after last stake was ended)
-    uint totalStaked; // T: sum of all active stake deposits
-    uint rewardPerTokenStaked; // S: SUM(reward/T) - sum of all rewards distributed divided all active stakes
-    uint totalRewardsPaid;
+    uint id; // index + 1 in rewardPeriods array
+    uint reward; // Amount to distribute over the entire period
+    uint from; // Block timestamp
+    uint to; // Block timestamp
+    uint lastUpdated; // When the totalStakedWeight was last updated (after last stake was ended)
+    uint totalStaked; // Sum of all active stake deposits
+    uint rewardPerTokenStaked; // Sum of all rewards distributed divided all active stakes: SUM(reward/totalStaked)
+    uint totalRewardsPaid; // Sum of all rewards paid in claims
   }
 
   struct UserInfo {
@@ -124,17 +124,17 @@ contract StakingRewardPool is StakingPool {
     withdraw(amount);
   }
 
+  /**
+   * Calculate total reward to be distributed since period.lastUpdated
+   */
   function calculateRewardDistribution(RewardPeriod memory period) view internal returns (uint) {
-    // calculate total reward to be distributed since period.lastUpdated
     uint rate = rewardRate(period);
-    uint timestamp = block.timestamp > period.to ? period.to : block.timestamp;
+    uint timestamp = block.timestamp > period.to ? period.to : block.timestamp; // We don't pay out after period.to
     uint deltaTime = timestamp.sub(period.lastUpdated);
     uint reward = deltaTime.mul(rate);
 
     uint newRewardPerTokenStaked = period.rewardPerTokenStaked;
-    // 0
     if (period.totalStaked != 0) {
-      // S = S + r / T
       newRewardPerTokenStaked = period.rewardPerTokenStaked.add(
         reward.mul(rewardPrecision).div(period.totalStaked)
       );
@@ -156,8 +156,6 @@ contract StakingRewardPool is StakingPool {
   }
 
   function claimableReward(uint periodId) view public returns (uint) {
-    if (periodId == 0) return 0;
-
     RewardPeriod memory period = rewardPeriods[periodId - 1];
     uint newRewardDistribution = calculateRewardDistribution(period);
     uint reward = calculateReward(newRewardDistribution);
@@ -221,12 +219,10 @@ contract StakingRewardPool is StakingPool {
    * Reward calculation
    */
   function update(uint periodId) internal {
-    require(periodId > 0, "No active reward period");
-
     RewardPeriod storage period = rewardPeriods[periodId - 1];
     uint rewardDistributedPerToken = calculateRewardDistribution(period);
 
-    // update pending rewards reward since rewardPerTokenStaked was updated
+    // update pending rewards since rewardPerTokenStaked was updated
     uint reward = calculateReward(rewardDistributedPerToken);
     UserInfo storage userInfo = userInfos[msg.sender];
     userInfo.pendingRewards = userInfo.pendingRewards.add(reward);

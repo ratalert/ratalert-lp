@@ -29,7 +29,7 @@ abstract contract Wallet is Ownable {
     require(amount > 0, "Invalid amount");
     require(foodTokenLP.allowance(msg.sender, address(this)) >= amount, "Insufficient allowance");
 
-    balances[msg.sender] += amount;
+    balances[msg.sender] = balances[msg.sender].add(amount);
     if (!users[msg.sender]) {
       users[msg.sender] = true;
       usersArray.push(msg.sender);
@@ -42,7 +42,7 @@ abstract contract Wallet is Ownable {
   function withdraw(uint256 amount) public {
     require(balances[msg.sender] >= amount, "Insufficient token balance");
 
-    balances[msg.sender] -= amount;
+    balances[msg.sender] = balances[msg.sender].sub(amount);
     foodTokenLP.transfer(msg.sender, amount);
 
     emit Withdrawn(msg.sender, amount);

@@ -23,9 +23,9 @@ contract StakingPool is Wallet, Pausable, DOWable {
     require(amount > 0, "Invalid amount");
     require(balances[msg.sender] >= amount, "Insufficient token balance");
 
-    balances[msg.sender] -= amount;
-    stakes[msg.sender] += amount;
-    totalStakes += amount;
+    balances[msg.sender] = balances[msg.sender].sub(amount);
+    stakes[msg.sender] = stakes[msg.sender].add(amount);
+    totalStakes = totalStakes.add(amount);
 
     emit Staked(msg.sender, amount);
   }
@@ -34,9 +34,9 @@ contract StakingPool is Wallet, Pausable, DOWable {
   function endStake(uint, uint amount) virtual public whenNotPaused {
     require(stakes[msg.sender] >= amount, "Insufficient token balance");
 
-    balances[msg.sender] += amount;
-    stakes[msg.sender] -= amount;
-    totalStakes -= amount;
+    balances[msg.sender] = balances[msg.sender].add(amount);
+    stakes[msg.sender] = stakes[msg.sender].sub(amount);
+    totalStakes = totalStakes.sub(amount);
 
     emit UnStaked(msg.sender, amount);
   }
