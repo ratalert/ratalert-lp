@@ -21,17 +21,17 @@ contract('StakingPool', (accounts) => {
   describe('startStake()', () => {
     it('updates the account balance accordingly', async () => {
       await this.pool.deposit(100);
-      await this.pool.startStake(0, 60);
+      await this.pool.startStake(60);
       await expect(this.pool.getBalance()).to.eventually.be.a.bignumber.eq('40');
 
-      await this.pool.startStake(0, 30);
+      await this.pool.startStake(30);
       await expect(this.pool.getBalance()).to.eventually.be.a.bignumber.eq('10');
 
-      await this.pool.startStake(0, 10);
+      await this.pool.startStake(10);
       await expect(this.pool.getBalance()).to.eventually.be.a.bignumber.eq('0');
     });
     it('does not allow staking more than is available', async () => {
-      await expect(this.pool.startStake(0, 1)).to.eventually.be.rejectedWith('Insufficient token balance');
+      await expect(this.pool.startStake(1)).to.eventually.be.rejectedWith('Insufficient token balance');
     });
   });
 
@@ -43,16 +43,16 @@ contract('StakingPool', (accounts) => {
 
   describe('endStake()', () => {
     it('updates both balances accordingly', async () => {
-      await this.pool.endStake(0, 60);
+      await this.pool.endStake(60);
       await expect(this.pool.getBalance()).to.eventually.be.a.bignumber.eq('60');
       await expect(this.pool.getStakedBalance()).to.eventually.be.a.bignumber.eq('40');
 
-      await this.pool.endStake(0, 40);
+      await this.pool.endStake(40);
       await expect(this.pool.getBalance()).to.eventually.be.a.bignumber.eq('100');
       await expect(this.pool.getStakedBalance()).to.eventually.be.a.bignumber.eq('0');
     })
     it('does not allow unstaking more than is available', async () => {
-      await expect(this.pool.endStake(0, 1)).to.eventually.be.rejectedWith('Insufficient token balance');
+      await expect(this.pool.endStake(1)).to.eventually.be.rejectedWith('Insufficient token balance');
     });
   });
 
@@ -63,10 +63,10 @@ contract('StakingPool', (accounts) => {
     });
 
     it('updates both balances accordingly', async () => {
-      await this.pool.depositAndStartStake(0, 20);
+      await this.pool.depositAndStartStake(20);
       await expect(this.pool.getBalance()).to.eventually.be.a.bignumber.eq('0');
       await expect(this.pool.getStakedBalance()).to.eventually.be.a.bignumber.eq('20');
-      await this.pool.depositAndStartStake(0, 80);
+      await this.pool.depositAndStartStake(80);
       await expect(this.pool.getBalance()).to.eventually.be.a.bignumber.eq('0');
       await expect(this.pool.getStakedBalance()).to.eventually.be.a.bignumber.eq('100');
     });
@@ -74,10 +74,10 @@ contract('StakingPool', (accounts) => {
 
   describe('endStakeAndWithdraw()', () => {
     it('updates both balances accordingly', async () => {
-      await this.pool.endStakeAndWithdraw(0, 70);
+      await this.pool.endStakeAndWithdraw(70);
       await expect(this.pool.getBalance()).to.eventually.be.a.bignumber.eq('0');
       await expect(this.pool.getStakedBalance()).to.eventually.be.a.bignumber.eq('30');
-      await this.pool.endStakeAndWithdraw(0, 30);
+      await this.pool.endStakeAndWithdraw(30);
       await expect(this.pool.getBalance()).to.eventually.be.a.bignumber.eq('0');
       await expect(this.pool.getStakedBalance()).to.eventually.be.a.bignumber.eq('0');
     });
@@ -93,7 +93,7 @@ contract('StakingPool', (accounts) => {
       await expect(this.pool.paused()).to.eventually.equal(true);
     });
     it('prevents depositAndStartStake when paused', async () => {
-      await expect(this.pool.depositAndStartStake(0, 1)).to.eventually.be.rejectedWith('Pausable: paused');
+      await expect(this.pool.depositAndStartStake(1)).to.eventually.be.rejectedWith('Pausable: paused');
     });
     it('denies anonymous to unpause', async () => {
       await expect(this.pool.unpause()).to.eventually.be.rejectedWith('Only DAO can execute');

@@ -5,7 +5,7 @@ require('@openzeppelin/test-helpers');
 
 const CakeLP = artifacts.require('FastFoodLP');
 const ETB = artifacts.require('FastFood');
-const StakingRewardPool = artifacts.require('StakingRewardPool');
+const StakingRewardPool = artifacts.require('FastFoodPool');
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
@@ -92,10 +92,10 @@ contract("StakingRewardPool", (accounts) => {
         let start = latestBlock.timestamp
         let end = start + period
 
-        const rewardPeriod = (await pool.newRewardPeriod(periodReward, start, end, { from: dao })).logs[0].args.id.toNumber();
+        await pool.newRewardPeriod(periodReward, start, end, { from: dao });
 
         // stake LP tokens
-        await pool.startStake(rewardPeriod, stakeAmount, { from: accounts[1] })
+        await pool.startStake(stakeAmount, { from: accounts[1] })
 
         // wait
         let t0 = (await web3.eth.getBlock('latest')).timestamp
@@ -103,7 +103,7 @@ contract("StakingRewardPool", (accounts) => {
         let t1 = (await web3.eth.getBlock('latest')).timestamp
 
         // get stake reward so far
-        let stakeReward1 = (await pool.claimableReward(rewardPeriod, { from: accounts[1] })).toNumber()
+        let stakeReward1 = (await pool.claimableReward({ from: accounts[1] })).toNumber()
         let stakePeriod1 = t1 - t0
         let expectedReward1 = rewardRate * stakePeriod1
         assert.equal(stakeReward1, expectedReward1, "Invalid stake reward amount")
@@ -113,7 +113,7 @@ contract("StakingRewardPool", (accounts) => {
         let t2 = (await web3.eth.getBlock('latest')).timestamp
 
         // get stake reward so far
-        let stakeReward2 = (await pool.claimableReward(rewardPeriod, { from: accounts[1] })).toNumber()
+        let stakeReward2 = (await pool.claimableReward({ from: accounts[1] })).toNumber()
         let stakePeriod2 = t2 - t0
         let expectedReward2 = rewardRate * stakePeriod2
         assert.equal(stakeReward2, expectedReward2, "Invalid stake reward amount")
@@ -149,13 +149,13 @@ contract("StakingRewardPool", (accounts) => {
         let rewardBalanceBefore = await getRewardBalance(accounts[1])
 
         // stake LP tokens
-        await pool.startStake(rewardPeriod, stakeAmount, { from: accounts[1] })
+        await pool.startStake(stakeAmount, { from: accounts[1] })
 
         // wait 7 days
         await helper.advanceTimeAndBlock(week - 5);
 
         // end stake
-        await pool.endStake(rewardPeriod, stakeAmount, { from: accounts[1] })
+        await pool.endStake(stakeAmount, { from: accounts[1] })
 
         let rewardBalanceAfter = await getRewardBalance(accounts[1])
         let rewardEarned = rewardBalanceAfter - rewardBalanceBefore
@@ -195,14 +195,14 @@ contract("StakingRewardPool", (accounts) => {
         await helper.advanceTimeAndBlock(500);
 
         // stake LP tokens
-        await pool.startStake(rewardPeriod, stakeAmount, { from: accounts[1] })
+        await pool.startStake(stakeAmount, { from: accounts[1] })
         let t0 = (await web3.eth.getBlock('latest')).timestamp
 
         // wait
         await helper.advanceTimeAndBlock(200);
 
         // end stake
-        await pool.endStake(rewardPeriod, stakeAmount, { from: accounts[1] })
+        await pool.endStake(stakeAmount, { from: accounts[1] })
         let t1 = (await web3.eth.getBlock('latest')).timestamp
 
         // verify reward earned
@@ -245,8 +245,9 @@ contract("StakingRewardPool", (accounts) => {
         await helper.advanceTimeAndBlock(100)
 
         // stake LP tokens
-        await pool.startStake(rewardPeriod, stake1Amount, { from: accounts[1] })
-        await pool.startStake(rewardPeriod, stake2Amount, { from: accounts[2] })
+        await pool.startStake(stake1Amount, { from: accounts[1] })
+        await helper.advanceTimeAndBlock(1)
+        await pool.startStake(stake2Amount, { from: accounts[2] })
 
         // wait some time
         await helper.advanceTimeAndBlock(100)
@@ -255,8 +256,8 @@ contract("StakingRewardPool", (accounts) => {
         let rewardBalance2Before = await getRewardBalance(accounts[2])
 
         // end stakes
-        await pool.endStake(rewardPeriod, 1, { from: accounts[1] })
-        await pool.endStake(rewardPeriod, 1, { from: accounts[2] })
+        await pool.endStake(1, { from: accounts[1] })
+        await pool.endStake(1, { from: accounts[2] })
 
         let rewardBalance1After = await getRewardBalance(accounts[1])
         let rewardBalance2After = await getRewardBalance(accounts[2])
@@ -301,22 +302,22 @@ contract("StakingRewardPool", (accounts) => {
         let rewardBalance2Before = await getRewardBalance(accounts[2])
 
         // start account 1 stake
-        await pool.startStake(rewardPeriod, stake1Amount, { from: accounts[1] })
+        await pool.startStake(stake1Amount, { from: accounts[1] })
 
         // wait 50s
         await helper.advanceTimeAndBlock(50);
 
         // start account 2 stake
-        await pool.startStake(rewardPeriod, stake2Amount, { from: accounts[2] })
+        await pool.startStake(stake2Amount, { from: accounts[2] })
 
         // end account 2 stake
-        await pool.endStake(rewardPeriod, stake1Amount, { from: accounts[1] })
+        await pool.endStake(stake1Amount, { from: accounts[1] })
 
         // wait 50s
         await helper.advanceTimeAndBlock(50);
 
         // end second stake
-        await pool.endStake(rewardPeriod, stake2Amount, { from: accounts[2] })
+        await pool.endStake(stake2Amount, { from: accounts[2] })
 
         let rewardBalance1After = await getRewardBalance(accounts[1])
         let rewardBalance2After = await getRewardBalance(accounts[2])
@@ -363,23 +364,23 @@ contract("StakingRewardPool", (accounts) => {
 
         // start 1st stake
         await helper.advanceTimeAndBlock(30);
-        await pool.startStake(rewardPeriod, stake1Amount, {from: accounts[1]})
+        await pool.startStake(stake1Amount, {from: accounts[1]})
 
         // end 1st stake after 100
         let stake1Interval = 100
         await helper.advanceTimeAndBlock(stake1Interval);
-        await pool.endStake(rewardPeriod, stake1Amount, {from: accounts[1]})
+        await pool.endStake(stake1Amount, {from: accounts[1]})
 
         // wait 50
         await helper.advanceTimeAndBlock(50);
 
         // start 2nd stake
-        await pool.startStake(rewardPeriod, stake2Amount, {from: accounts[2]})
+        await pool.startStake(stake2Amount, {from: accounts[2]})
 
         // end 2nd stake after 200
         let stake2Interval = 200
         await helper.advanceTimeAndBlock(stake2Interval);
-        await pool.endStake(rewardPeriod, stake2Amount, {from: accounts[2]})
+        await pool.endStake(stake2Amount, {from: accounts[2]})
 
         // get reward balance after
         let rewardBalance1After = await getRewardBalance(accounts[1])
@@ -426,41 +427,41 @@ contract("StakingRewardPool", (accounts) => {
         const rewardPeriod = (await pool.newRewardPeriod(reward, start, end, { from: dao })).logs[0].args.id.toNumber();
 
         // day 1
-        await pool.startStake(rewardPeriod, stake1Amount, { from: accounts[1] })   // STAKE 1
+        await pool.startStake(stake1Amount, { from: accounts[1] })   // STAKE 1
 
         let ts1s = (await web3.eth.getBlock('latest')).timestamp
         await advanceTime(day, "day 1");
         let ts1e = (await web3.eth.getBlock('latest')).timestamp
 
-        let reward1Day1 = (await pool.claimableReward(rewardPeriod, { from: accounts[1] })).toNumber()
+        let reward1Day1 = (await pool.claimableReward({ from: accounts[1] })).toNumber()
         let expected1Day1 = (ts1e - ts1s)
         assert.equal(reward1Day1, expected1Day1, "Incorrect day 1 reward for account 1")
 
         // day 2
-        await pool.startStake(rewardPeriod, stake2Amount, { from: accounts[2] })    // STAKE 2
+        await pool.startStake(stake2Amount, { from: accounts[2] })    // STAKE 2
 
         let ts2s = (await web3.eth.getBlock('latest')).timestamp
         await advanceTime(day, "day 2");
         let ts2e = (await web3.eth.getBlock('latest')).timestamp
 
-        let reward1Day2 = (await pool.claimableReward(rewardPeriod, { from: accounts[1] })).toNumber()
+        let reward1Day2 = (await pool.claimableReward({ from: accounts[1] })).toNumber()
         let expected1Day2 = Math.floor((ts2s - ts1s) / 1) + Math.floor((ts2e - ts2s) * 1 / 4)
         assert.equal(reward1Day2, expected1Day2, "Incorrect day 2 reward for account 1")
 
-        let reward2Day2 = (await pool.claimableReward(rewardPeriod, { from: accounts[2] })).toNumber()
+        let reward2Day2 = (await pool.claimableReward({ from: accounts[2] })).toNumber()
         let expected2Day2 = Math.floor((ts2e - ts2s) * 3 / 4)
         assert.equal(reward2Day2, expected2Day2, "Incorrect day 2 reward for account 2")
 
         // day 3
         await advanceTime(day, "day 3");
 
-        await pool.endStake(rewardPeriod, stake, { from: accounts[1] })      // END STAKE 1
+        await pool.endStake(stake, { from: accounts[1] })      // END STAKE 1
         let ts3e1 = (await web3.eth.getBlock('latest')).timestamp
-        await pool.endStake(rewardPeriod, stake, { from: accounts[2] })      // END STAKE 2
+        await pool.endStake(stake, { from: accounts[2] })      // END STAKE 2
         let ts3e2 = (await web3.eth.getBlock('latest')).timestamp
 
-        let claimable1Day3 = (await pool.claimableReward(rewardPeriod, { from: accounts[1] })).toNumber()
-        let claimable2Day3 = (await pool.claimableReward(rewardPeriod, { from: accounts[2] })).toNumber()
+        let claimable1Day3 = (await pool.claimableReward({ from: accounts[1] })).toNumber()
+        let claimable2Day3 = (await pool.claimableReward({ from: accounts[2] })).toNumber()
 
         assert.equal(claimable1Day3, 0, "Account 1 should not have any reward to claim after ending stake")
         assert.equal(claimable2Day3, 0, "Account 2 should not have any reward to claim after ending stake")

@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 pragma abicoder v2;
 
-import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./Wallet.sol";
 import "./DOWable.sol";
@@ -19,7 +18,7 @@ contract StakingPool is Wallet, Pausable, DOWable {
 
   constructor(address _rewardToken, address _lpToken) Wallet(_lpToken) {}
 
-  function startStake(uint, uint amount) virtual public whenNotPaused {
+  function startStake(uint amount) virtual public {
     require(amount > 0, "Invalid amount");
     require(balances[msg.sender] >= amount, "Insufficient token balance");
 
@@ -31,7 +30,7 @@ contract StakingPool is Wallet, Pausable, DOWable {
   }
 
 
-  function endStake(uint, uint amount) virtual public whenNotPaused {
+  function endStake(uint amount) virtual public whenNotPaused {
     require(stakes[msg.sender] >= amount, "Insufficient token balance");
 
     balances[msg.sender] = balances[msg.sender].add(amount);
@@ -45,13 +44,13 @@ contract StakingPool is Wallet, Pausable, DOWable {
     return stakes[msg.sender];
   }
 
-  function depositAndStartStake(uint periodId, uint256 amount) virtual public whenNotPaused {
+  function depositAndStartStake(uint256 amount) public whenNotPaused {
     deposit(amount);
-    startStake(periodId, amount);
+    startStake(amount);
   }
 
-  function endStakeAndWithdraw(uint periodId, uint amount) virtual public whenNotPaused {
-    endStake(periodId, amount);
+  function endStakeAndWithdraw(uint amount) public whenNotPaused {
+    endStake(amount);
     withdraw(amount);
   }
 
