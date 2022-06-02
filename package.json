@@ -13,7 +13,7 @@
     "deploy-test": "truffle migrate --network test",
     "deploy-beta": "truffle migrate --network beta",
     "deploy-live": "truffle migrate --network live",
-    "verify": "truffle run verify StakingRewardPool"
+    "verify": "truffle run verify FastFoodPool CasualFoodPool"
   },
   "author": "",
   "license": "ISC",
